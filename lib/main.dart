@@ -1,0 +1,24 @@
+import 'package:shelf/shelf.dart';
+import 'package:shelf/shelf_io.dart' as io;
+import 'package:shelf_router/shelf_router.dart';
+import 'db.dart';
+import 'meal_api.dart';
+import 'auth_middleware.dart';
+import 'package:dotenv/dotenv.dart' as dotenv;
+
+void main() async {
+  final env = dotenv.DotEnv()..load();
+  final port = int.tryParse(env['PORT'] ?? '8080') ?? 8080;
+  await Db.init();
+
+  final app = Router()..mount('/api', MealApi().router);
+
+  final handler = const Pipeline()
+      .addMiddleware(logRequests())
+      .addMiddleware(authMiddleware()) //global authorization
+      .addHandler(app);
+
+  final server = await io.serve(handler, '0.0.0.0', port);
+
+  print('Server running on http://${server.address.host}:${server.port}');
+}
