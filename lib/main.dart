@@ -11,12 +11,12 @@ void main() async {
   final port = int.tryParse(env['PORT'] ?? '8080') ?? 8080;
   await Db.init();
 
-  final app = Router()..mount('/api', MealApi().router);
+  final app = Router()..mount('/api', MealApi().router.call);
 
   final handler = const Pipeline()
       .addMiddleware(logRequests())
       .addMiddleware(authMiddleware()) //global authorization
-      .addHandler(app);
+      .addHandler(app.call);
 
   final server = await io.serve(handler, '0.0.0.0', port);
 

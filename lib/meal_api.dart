@@ -11,9 +11,12 @@ class MealApi {
     router.get('/meals', _getMeals);
     router.get('/meals/<id>', _selectMeal);
     router.get('/meals/filter', _filterMeals);
+    router.get('/favorites', _getFavorite);
     router.post('/meals', _createMeal);
+    router.post('/favorite', _addFavorite);
     router.put('/meals/<id>', _editMeal);
     router.delete('/meals/<id>', _deleteMeal);
+    router.delete('/favorite', _deleteFavorite);
     return router;
   }
 
@@ -137,6 +140,16 @@ class MealApi {
     }
   }
 
+  Future<Response> _getFavorite(Request request) async {
+    final result = await Db.connection.query('SELECT meal_id FROM favorites');
+
+    final ids = result.map((r) => r[0] as String).toList();
+    return Response.ok(
+      jsonEncode(ids),
+      headers: {'Content-Type': 'application/json'},
+    );
+  }
+
   Future<Response> _createMeal(Request request) async {
     try {
       final body = await request.readAsString();
@@ -216,6 +229,17 @@ class MealApi {
         headers: {'Content-Type': 'application/json'},
       );
     }
+  }
+
+  Future<Response> _addFavorite(Request request, String id) async {
+    await Db.connection.query(
+      'INSERT INTO favorites (meal_id) VALUES (@id) ON CONFLICT DO NOTHING',
+      substitutionValues: {'id': id},
+    );
+    return Response.ok(
+      jsonEncode({'message': 'added'}),
+      headers: {'Content-Type': 'application/json'},
+    );
   }
 
   Future<Response> _editMeal(Request request, String id) async {
@@ -301,6 +325,17 @@ class MealApi {
     }
     return Response.ok(
       jsonEncode({'message': 'Meal deleted'}),
+      headers: {'Content-Type': 'application/json'},
+    );
+  }
+
+  Future<Response> _deleteFavorite(Request request, String id) async {
+    await Db.connection.query(
+      'DELETE FROM favorites WHERE meal_id=@id',
+      substitutionValues: {'id': id},
+    );
+    return Response.ok(
+      jsonEncode({'message': 'removed'}),
       headers: {'Content-Type': 'application/json'},
     );
   }
