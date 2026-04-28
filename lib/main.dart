@@ -9,9 +9,22 @@ import 'package:dotenv/dotenv.dart' as dotenv;
 void main() async {
   final env = dotenv.DotEnv()..load();
   final port = int.tryParse(env['PORT'] ?? '8080') ?? 8080;
-  await Db.init();
+  try {
+    await Db.init();
+  } catch (e) {
+    print('Database init failed: $e');
+    rethrow;
+  }
 
-  final app = Router()..mount('/api', MealApi().router.call);
+  print('Creating MealApi...');
+  final mealApi = MealApi();
+  print('MealApi created, getting router...');
+  final mealRouter = mealApi.router;
+  print('Router created with routes');
+
+  final app = Router()
+    ..mount('/api', mealRouter)
+    ..get('/test', (Request request) => Response.ok('Test OK'));
 
   final handler = const Pipeline()
       .addMiddleware(logRequests())
