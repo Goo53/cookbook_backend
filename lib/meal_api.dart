@@ -9,7 +9,7 @@ class MealApi {
   Router get router {
     final router = Router();
     router.get('/meals', _getMeals);
-    router.get('/meals/filter', _filterMeals);
+    router.get('/meals_filter', _filterMeals);
     router.get('/meals/<id>', _selectMeal);
     router.get('/favorites', _getFavorite);
     router.post('/meals', _createMeal);
