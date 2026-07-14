@@ -3,7 +3,7 @@ import 'package:shelf/shelf.dart';
 
 //checking for a valid authorization header
 
-Middleware authMiddleware() {
+Middleware authMiddleware(String expectedToken) {
   return (Handler innerHandler) {
     return (Request request) async {
       final authHeader = request.headers['Authorization'];
@@ -17,7 +17,7 @@ Middleware authMiddleware() {
       final token = authHeader.substring(7);
 
       //validate token
-      if (token != 'my-secret-token') {
+      if (token != expectedToken) {
         return Response.forbidden(
           jsonEncode({'error': 'Invalid token'}),
           headers: {'Content-Type': 'application/json'},

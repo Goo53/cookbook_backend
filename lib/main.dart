@@ -4,13 +4,12 @@ import 'package:shelf_router/shelf_router.dart';
 import 'db.dart';
 import 'meal_api.dart';
 import 'auth_middleware.dart';
-import 'package:dotenv/dotenv.dart' as dotenv;
+import 'config.dart';
 
 void main() async {
-  final env = dotenv.DotEnv()..load();
-  final port = int.tryParse(env['PORT'] ?? '8080') ?? 8080;
+  final config = AppConfig.load();
   try {
-    await Db.init();
+    await Db.init(config);
   } catch (e) {
     print('Database init failed: $e');
     rethrow;
@@ -23,15 +22,15 @@ void main() async {
   print('Router created with routes');
 
   final app = Router()
-    ..mount('/api', mealRouter)
+    ..mount('/api', mealRouter.call)
     ..get('/test', (Request request) => Response.ok('Test OK'));
 
   final handler = const Pipeline()
       .addMiddleware(logRequests())
-      .addMiddleware(authMiddleware()) //global authorization
+      .addMiddleware(authMiddleware(config.apiToken)) //global authorization
       .addHandler(app.call);
 
-  final server = await io.serve(handler, '0.0.0.0', port);
+  final server = await io.serve(handler, '0.0.0.0', config.port);
 
   print('Server running on http://${server.address.host}:${server.port}');
 }

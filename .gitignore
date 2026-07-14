@@ -6,7 +6,6 @@ build/
 # Secrets
 .env
 .packages
-lib/db.dart
 *.secret.dart
 
 # Logs
